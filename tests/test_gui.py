@@ -86,6 +86,25 @@ def test_set_config_paths_types_and_persistence(backend):
     assert backend.config["current"]["personality"]["preset"] == "geek"
 
 
+def test_set_config_takes_a_javascript_array(backend):
+    # The "What it may say" checkboxes send a JS array: it arrives as a QJSValue, and
+    # 3.0.0 saved it as the text "<PySide6.QtQml.QJSValue object …>".
+    from PySide6.QtQml import QJSEngine
+    js = QJSEngine()
+    backend.setConfig("spontaneous.categories", js.evaluate('["humor", "cta"]'))
+    assert Settings.load().spontaneous.categories == ["humor", "cta"]
+
+
+def test_broken_spontaneous_categories_heal_on_load(tmp_path):
+    path = tmp_path / "settings.json"
+    path.write_text(json.dumps({"spontaneous": {"categories": ["<PySide6.QtQml.QJSValue object at 0x7f>"]}}))
+    assert Settings.load(path).spontaneous.categories == Settings().spontaneous.categories
+    path.write_text(json.dumps({"spontaneous": {"categories": ["humor", "bogus"]}}))
+    assert Settings.load(path).spontaneous.categories == ["humor"]
+    path.write_text(json.dumps({"spontaneous": {"categories": []}}))  # all unchecked on purpose
+    assert Settings.load(path).spontaneous.categories == []
+
+
 def test_select_character(backend):
     backend.selectCharacter("tux")
     assert backend.config["character"] == "tux"
