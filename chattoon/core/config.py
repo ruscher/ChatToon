@@ -12,6 +12,8 @@ import typing
 from dataclasses import asdict, dataclass, field, fields, is_dataclass
 from pathlib import Path
 
+from .knowledge import CATEGORIES
+
 APP_ID = "chattoon"
 # Version of the settings file format. Older files are migrated by Settings.load(); the
 # original is copied to settings.json.v<old>.bak once before anything is overwritten.
@@ -340,6 +342,11 @@ class Settings:
             # ChatToon 2.x read one YouTube chat: it becomes the first source, nothing to redo.
             settings.streams.sources = settings.stream_sources()
             settings.streams.migrated = True
+        sp = settings.spontaneous
+        valid = [c for c in sp.categories if c in CATEGORIES]
+        if valid != sp.categories:
+            # 3.0.0 saved the checkboxes as "<PySide6.QtQml.QJSValue object …>": back to the defaults
+            sp.categories = valid or SpontaneousSettings().categories
         return settings
 
     def save(self, path: Path | None = None) -> None:

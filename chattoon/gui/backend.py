@@ -13,6 +13,7 @@ from pathlib import Path
 import aiohttp
 from PySide6.QtCore import Property, QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices, QGuiApplication
+from PySide6.QtQml import QJSValue
 
 from ..core import extras, knowledge
 from ..core.brain import apply_preset
@@ -439,6 +440,8 @@ class Backend(QObject):
         except AttributeError:
             log.warning("unknown setting %s", path)
             return
+        if isinstance(value, QJSValue):  # a JavaScript array from QML, e.g. spontaneous.categories
+            value = value.toVariant()
         try:
             if isinstance(current, bool):
                 value = bool(value)

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+**Fixes**
+- TTS BigLinux was reported as not installed when another Python package put a top-level
+  `utils.py` on the path (hermes-agent does, with pip --user): its `utils/` and `services/`
+  folders are now always loaded from the TTS BigLinux directory.
+- Settings › Spontaneous lines › What it may say: the checkboxes were saved as
+  "<PySide6.QtQml.QJSValue object …>", so none stayed checked and no spontaneous line was
+  spoken. Broken saved values go back to the default categories.
+
 ## 3.0.0 — 2026-10-17
 
 **Where the character appears**
