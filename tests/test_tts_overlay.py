@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sys
 
 import aiohttp
 import pytest
@@ -27,6 +28,27 @@ def test_tts_missing_package(monkeypatch, tmp_path):
     assert "tts-biglinux" in t.error
     with pytest.raises(TTSError):
         t.voices()
+
+
+def test_tts_namespace_packages_beat_a_stray_utils_module(monkeypatch, tmp_path):
+    # TTS BigLinux's utils/ has no __init__.py; a regular utils.py elsewhere (hermes-agent
+    # installs one in ~/.local) used to win and break "from utils.i18n import _".
+    tts_dir, other = tmp_path / "tts", tmp_path / "other"
+    (tts_dir / "utils").mkdir(parents=True)
+    (tts_dir / "utils" / "i18n.py").write_text("ok = True\n")
+    (tts_dir / "config.py").write_text("NAME = 'tts'\n")
+    other.mkdir()
+    (other / "utils.py").write_text("stray = True\n")
+    monkeypatch.setattr(tts_mod, "TTS_BIGLINUX_DIR", tts_dir)
+    monkeypatch.syspath_prepend(str(other))
+    for name in ("utils", "utils.i18n", "config", "services"):
+        monkeypatch.setitem(sys.modules, name, None)  # restored (or removed) after the test
+        monkeypatch.delitem(sys.modules, name)
+    import utils  # noqa: F401 - the stray module gets imported first
+    tts_mod._bind_tts_toplevel()
+    from utils.i18n import ok
+    import config
+    assert ok and config.NAME == "tts"
 
 
 def test_text_goes_through_stdin_not_shell(monkeypatch, tmp_path):

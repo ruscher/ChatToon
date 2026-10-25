@@ -12,6 +12,8 @@ audio exactly once, in one place.
 from __future__ import annotations
 
 import array
+import importlib.machinery
+import importlib.util
 import json
 import logging
 import math
@@ -81,6 +83,39 @@ class Voice:
                 "gender": self.gender, "quality": self.quality, "pitch": self.pitch_supported}
 
 
+# Top-level names TTS BigLinux imports from its own directory. ``services`` and ``utils``
+# have no __init__.py, so any regular ``utils.py`` elsewhere on sys.path (hermes-agent
+# installs one with pip --user, for example) wins over them and the import fails.
+_TTS_TOPLEVEL = ("config", "utils", "services")
+
+
+def _from_tts_dir(module) -> bool:
+    paths = list(getattr(module, "__path__", None) or []) + [getattr(module, "__file__", None) or ""]
+    return any(p and Path(p).is_relative_to(TTS_BIGLINUX_DIR) for p in paths)
+
+
+def _bind_tts_toplevel() -> None:
+    """Load TTS BigLinux's top-level modules from its directory, whatever else is on sys.path."""
+    for name in _TTS_TOPLEVEL:
+        current = sys.modules.get(name)
+        if current is not None and _from_tts_dir(current):
+            continue
+        spec = importlib.machinery.PathFinder.find_spec(name, [str(TTS_BIGLINUX_DIR)])
+        if spec is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        try:
+            if spec.loader is not None:
+                spec.loader.exec_module(module)
+        except BaseException:
+            if current is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = current
+            raise
+
+
 @dataclass
 class Utterance:
     id: str
@@ -120,6 +155,7 @@ class BigLinuxTTS:
             if p not in sys.path:
                 sys.path.append(p)  # append: never shadow ChatToon's own modules
         try:
+            _bind_tts_toplevel()
             from services import tts_service, voice_manager  # type: ignore[import-not-found]
             from services.text_processor import process_text  # type: ignore[import-not-found]
         except Exception as e:  # noqa: BLE001 - any import failure means "unusable"
