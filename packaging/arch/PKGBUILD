@@ -6,7 +6,7 @@
 # Remove: sudo pacman -R chattoon
 
 pkgname=chattoon
-pkgver=3.0.0
+pkgver=3.0.1
 pkgrel=1
 pkgdesc="3D avatar co-host for live streams on YouTube, Twitch, Kick, TikTok and more at once, powered by local AI (Ollama) and TTS BigLinux"
 arch=('any')

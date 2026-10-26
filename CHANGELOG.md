@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.1 — 2026-10-25
 
 **Fixes**
 - TTS BigLinux was reported as not installed when another Python package put a top-level

@@ -1,4 +1,4 @@
-# ChatToon 3.0.0
+# ChatToon 3.0.1
 
 **Um coapresentador 3D para a sua live.** O ChatToon é um personagem animado que lê o chat do
 YouTube, da Twitch, do TikTok e de outras plataformas **ao mesmo tempo**, responde com humor
@@ -68,7 +68,7 @@ cd ChatToon/packaging/arch
 makepkg -si
 ```
 
-Abra **ChatToon** pelo menu. `chattoon --version` mostra `chattoon 3.0.0`. Para remover:
+Abra **ChatToon** pelo menu. `chattoon --version` mostra `chattoon 3.0.1`. Para remover:
 `sudo pacman -R chattoon` (configurações e memórias ficam em `~/.config/chattoon` e
 `~/.local/share/chattoon`).
 
