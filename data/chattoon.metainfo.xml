@@ -54,6 +54,7 @@
     <keyword>tts</keyword>
   </keywords>
   <releases>
+    <release version="3.0.1" date="2026-10-25"/>
     <release version="3.0.0" date="2026-10-17"/>
     <release version="2.3.0" date="2026-10-15"/>
   </releases>
